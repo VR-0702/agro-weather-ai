@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KisanAI — Smart Agriculture Assistant</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="config.js"></script>
+  <style>
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .quick-action-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .quick-action-card:hover { border-color: var(--green-bright); box-shadow: var(--shadow-md); transform: translateY(-4px); }
+    .quick-action-icon { font-size: 2.5rem; }
+    .quick-action-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+    .quick-action-desc { font-size: 0.82rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-brand">
+    <span class="logo-icon">🌱</span>
+    KisanAI
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">🏠 Home</a></li>
+    <li><a href="crop.html">🌾 Crops</a></li>
+    <li><a href="chatbot.html">🤖 AI Chat</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>🌱 Smart Agriculture<br>Assistant</h1>
+  <p>Real-time weather, AI crop recommendations, plant disease detection, and expert farming advice — all in one place.</p>
+  <a href="chatbot.html" class="btn btn-gold btn-lg">🤖 Ask KisanAI Now</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="container" style="padding-top: 2rem;">
+
+  <!-- WEATHER SEARCH -->
+  <section>
+    <div style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.5rem;">
+      <div style="flex:1; min-width:220px;">
+        <label class="form-label">📍 Your City / Location</label>
+        <input type="text" class="form-control" id="cityInput" placeholder="Enter city name..." value="Delhi" />
+      </div>
+      <button class="btn btn-primary" onclick="loadWeather()">Get Weather</button>
+      <button class="btn btn-secondary" id="locationBtn" onclick="getLocationAndRecommend()" style="display:flex; align-items:center; gap:6px;">
+        📍 My Location Use Karo
+      </button>
+    </div>
+    <div id="weatherDisplay"></div>
+  </section>
+
+  <!-- LOCATION BASED CROP RECOMMENDATION -->
+  <section id="cropRecoSection" style="display:none;">
+    <div id="cropRecoBox"></div>
+  </section>
+
+  <!-- QUICK ACTIONS -->
+  <section>
+    <h2 class="section-title">What would you like to do?</h2>
+    <p class="section-sub">Choose a feature to get started</p>
+    <div class="quick-actions">
+      <a href="chatbot.html" class="quick-action-card fade-in-delay-1">
+        <span class="quick-action-icon">🤖</span>
+        <span class="quick-action-title">AI Plant Doctor</span>
+        <span class="quick-action-desc">Ask questions, upload images, get disease diagnosis in your language</span>
+      </a>
+      <a href="crop.html" class="quick-action-card fade-in-delay-2">
+        <span class="quick-action-icon">🌾</span>
+        <span class="quick-action-title">Crop Planner</span>
+        <span class="quick-action-desc">Month-wise crop recommendations for smart farming</span>
+      </a>
+      <div class="quick-action-card fade-in-delay-3" onclick="scrollToRain()" style="cursor:pointer;">
+        <span class="quick-action-icon">🌧️</span>
+        <span class="quick-action-title">Rain Predictor</span>
+        <span class="quick-action-desc">ML-powered rain prediction based on weather parameters</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAIN PREDICTION -->
+  <section id="rainSection">
+    <h2 class="section-title">🌧️ Rain Prediction</h2>
+    <p class="section-sub">Enter weather parameters to predict rain using our ML model</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span>🎛️</span><h2>Input Parameters</h2></div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">🌡️ Temperature (°C)</label>
+              <input type="number" class="form-control" id="rainTemp" value="28" min="-20" max="60" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">💧 Humidity (%)</label>
+              <input type="number" class="form-control" id="rainHumidity" value="75" min="0" max="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">📊 Pressure (hPa)</label>
+              <input type="number" class="form-control" id="rainPressure" value="1010" min="900" max="1100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">☁️ Cloud Cover (%)</label>
+              <input type="number" class="form-control" id="rainCloud" value="60" min="0" max="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">💨 Wind Speed (km/h)</label>
+              <input type="number" class="form-control" id="rainWind" value="12" min="0" max="200" />
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="predictRain()">
+            🔮 Predict Rain
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>📊</span><h2>Prediction Result</h2></div>
+        <div class="card-body" id="rainResult">
+          <div class="loading-overlay" style="padding:2rem; color:var(--text-muted);">
+            <span style="font-size:3rem;">🌤️</span>
+            <p>Enter parameters and click Predict</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>🌱 KisanAI — Empowering farmers with technology | Built with ❤️ for Indian Agriculture</p>
+</footer>
+
+<script src="js/weather.js"></script>
+<script src="js/rain.js"></script>
+<script>
+  // Load default weather on page load
+  loadWeather();
+
+  function scrollToRain() {
+    document.getElementById('rainSection').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

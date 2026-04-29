@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Planner — KisanAI</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="config.js"></script>
+  <style>
+    .month-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .month-tab {
+      padding: 0.5rem 1.1rem;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: var(--transition);
+      color: var(--text-muted);
+    }
+    .month-tab:hover { border-color: var(--green-bright); color: var(--green-mid); }
+    .month-tab.active { background: var(--green-mid); border-color: var(--green-mid); color: white; }
+
+    .crop-detail-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: var(--transition);
+    }
+    .crop-detail-card:hover { border-color: var(--green-bright); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+    .season-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .season-rabi   { background: #e8f5e9; color: #2e7d32; }
+    .season-kharif { background: #e3f2fd; color: #1565c0; }
+    .season-zaid   { background: #fff8e1; color: #f57f17; }
+
+    .crop-stat-row { display: flex; gap: 1rem; margin: 0.75rem 0; flex-wrap: wrap; }
+    .crop-stat-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
+
+    .tip-box {
+      background: var(--green-pale);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: var(--green-deep);
+      margin-top: 1rem;
+      border-left: 3px solid var(--green-bright);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="logo-icon">🌱</span> KisanAI</a>
+  <ul class="nav-links">
+    <li><a href="index.html">🏠 Home</a></li>
+    <li><a href="crop.html" class="active">🌾 Crops</a></li>
+    <li><a href="chatbot.html">🤖 AI Chat</a></li>
+  </ul>
+</nav>
+
+<div class="hero" style="padding:3rem 2rem 2.5rem;">
+  <h1 style="font-size:2rem;">🌾 Crop Planner</h1>
+  <p>Month-wise crop recommendations tailored for Indian agriculture seasons</p>
+</div>
+
+<main class="container" style="padding-top:2rem;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+    <div>
+      <h2 class="section-title" id="selectedMonthTitle">This Month's Crops</h2>
+      <p class="section-sub" id="selectedMonthSub">Select a month to see recommendations</p>
+    </div>
+    <div id="seasonBadge"></div>
+  </div>
+
+  <div class="month-tabs" id="monthTabs"></div>
+
+  <div id="cropGrid" class="grid-3"></div>
+
+</main>
+
+<footer class="footer">
+  <p>🌱 KisanAI — Empowering farmers with technology</p>
+</footer>
+
+<script src="js/crop.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+cat > .gitignore << 'EOF'
+# API Keys — KABHI GIT PE MAT JAAYE
+.env
+frontend/config.js
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ML Model
+backend/model/*.pkl
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+EOF
