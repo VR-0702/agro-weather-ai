@@ -1,7 +1,8 @@
 import os
 from groq import Groq
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY", "YOUR_GROQ_API_KEY"))
+# SAHI
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """You are KisanAI — an expert agriculture advisor, plant doctor, and farming consultant.
 You help farmers with crop diseases, pest control, soil health, irrigation, and farming best practices.
