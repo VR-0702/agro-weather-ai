@@ -40,7 +40,12 @@
     <li><a href="index.html" class="active">🏠 Home</a></li>
     <li><a href="crop.html">🌾 Crops</a></li>
     <li><a href="chatbot.html">🤖 AI Chat</a></li>
+    <li id="gwmNavLink" style="display:none;"><a href="grow.html">🌱 Grow With Me</a></li>
   </ul>
+  <div id="authNavArea" style="display:flex;gap:0.5rem;align-items:center;">
+    <a href="login.html" id="loginNavBtn" class="btn btn-secondary btn-sm" style="color:white;border-color:rgba(255,255,255,0.3);">Login</a>
+    <div id="userNavChip" style="display:none;background:rgba(255,255,255,0.15);border-radius:20px;padding:0.35rem 0.85rem;font-size:0.82rem;color:white;"></div>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -92,6 +97,11 @@
         <span class="quick-action-icon">🌧️</span>
         <span class="quick-action-title">Rain Predictor</span>
         <span class="quick-action-desc">ML-powered rain prediction based on weather parameters</span>
+      </div>
+      <div id="gwmCard" style="display:none;" class="quick-action-card" onclick="window.location.href='grow.html'" style="cursor:pointer;">
+        <span class="quick-action-icon">🌱</span>
+        <span class="quick-action-title">Grow With Me</span>
+        <span class="quick-action-desc">Apna plant ugao, AI se guide lo, weekly health check karo!</span>
       </div>
     </div>
   </section>
@@ -153,12 +163,26 @@
 <script src="js/weather.js"></script>
 <script src="js/rain.js"></script>
 <script>
-  // Load default weather on page load
   loadWeather();
 
   function scrollToRain() {
     document.getElementById('rainSection').scrollIntoView({ behavior: 'smooth' });
   }
+
+  // Auth check for Grow With Me
+  (function() {
+    var user = JSON.parse(localStorage.getItem('kisanai_user') || 'null');
+    if (user) {
+      var gwmLink = document.getElementById('gwmNavLink');
+      var gwmCard = document.getElementById('gwmCard');
+      var loginBtn = document.getElementById('loginNavBtn');
+      var userChip = document.getElementById('userNavChip');
+      if (gwmLink) gwmLink.style.display = 'list-item';
+      if (gwmCard) gwmCard.style.display = 'flex';
+      if (loginBtn) loginBtn.style.display = 'none';
+      if (userChip) { userChip.style.display = 'block'; userChip.textContent = '👤 ' + user.name; }
+    }
+  })();
 </script>
 </body>
 </html>
