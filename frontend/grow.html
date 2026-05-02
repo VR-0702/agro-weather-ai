@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Grow With Me — KisanAI</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    :root {
+      --soil: #5d4037; --soil-l: #8d6e63;
+      --leaf: #2e7d32; --leaf-l: #66bb6a;
+      --sky-g: #e3f2fd; --pot: #bf360c;
+    }
+
+    body { background: var(--bg); min-height: 100vh; }
+
+    /* ===== HEADER ===== */
+    .gwm-header {
+      background: linear-gradient(135deg, var(--green-deep), #1b5e20);
+      color: white; padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    .gwm-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; }
+    .user-chip {
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 0.4rem 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
+    }
+
+    /* ===== PLANT SELECTOR ===== */
+    .selector-wrap { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .section-head { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--green-deep); margin-bottom: 0.5rem; }
+    .section-sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+    .category-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .cat-tab {
+      padding: 0.4rem 1rem; border-radius: 20px; border: 1.5px solid var(--border);
+      background: var(--surface); cursor: pointer; font-size: 0.85rem; font-weight: 600;
+      color: var(--text-muted); transition: var(--transition);
+    }
+    .cat-tab.active, .cat-tab:hover { background: var(--green-mid); border-color: var(--green-mid); color: white; }
+
+    .plant-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .plant-card {
+      background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 0.75rem; text-align: center; cursor: pointer; transition: var(--transition);
+    }
+    .plant-card:hover { border-color: var(--green-bright); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .plant-card.selected { border-color: var(--green-mid); background: var(--green-pale); }
+    .plant-card .icon { font-size: 2rem; display: block; margin-bottom: 0.4rem; }
+    .plant-card .name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+    .plant-card .time { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+    .grow-btn {
+      width: 100%; padding: 1rem; font-size: 1rem; border-radius: 14px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+      color: white; border: none; cursor: pointer; font-family: 'Syne', sans-serif;
+      font-weight: 700; transition: var(--transition); display: none;
+    }
+    .grow-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    /* ===== MY PLANTS DASHBOARD ===== */
+    .my-plants { padding: 0 1.5rem 2rem; max-width: 1100px; margin: 0 auto; }
+    .plants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+
+    /* ===== PLANT POT CARD ===== */
+    .pot-card {
+      background: var(--surface); border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: var(--transition);
+    }
+    .pot-card:hover { box-shadow: var(--shadow-md); }
+
+    .pot-scene {
+      background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 100%);
+      height: 200px; display: flex; align-items: flex-end; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+
+    .soil-base {
+      width: 100%; height: 60px; background: var(--soil);
+      border-radius: 0 0 0 0; position: absolute; bottom: 0;
+    }
+    .soil-top {
+      width: 80%; height: 8px; background: var(--soil-l);
+      position: absolute; bottom: 60px; left: 10%; border-radius: 4px 4px 0 0;
+    }
+
+    /* Plant SVG grows based on stage */
+    .plant-svg { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); transition: all 1s ease; }
+
+    .stage-badge {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(255,255,255,0.9); border-radius: 20px;
+      padding: 3px 10px; font-size: 0.72rem; font-weight: 700;
+      color: var(--green-deep);
+    }
+
+    .health-badge {
+      position: absolute; top: 10px; left: 10px;
+      border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700;
+    }
+    .health-good { background: var(--green-pale); color: var(--green-deep); }
+    .health-warn { background: #fff8e1; color: #f57f17; }
+    .health-bad  { background: #ffebee; color: var(--red); }
+
+    .pot-info { padding: 1.1rem 1.25rem; }
+    .pot-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--text); }
+    .pot-meta { font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 0.75rem; }
+
+    .progress-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .progress-label { font-size: 0.75rem; color: var(--text-muted); min-width: 80px; }
+    .progress { flex: 1; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--green-bright); border-radius: 99px; transition: width 0.8s ease; }
+    .progress-pct { font-size: 0.75rem; font-weight: 700; color: var(--green-mid); min-width: 36px; text-align: right; }
+
+    .task-row { background: var(--surface2); border-radius: 10px; padding: 0.6rem 0.85rem; margin-bottom: 0.75rem; }
+    .task-row .task-label { font-size: 0.82rem; font-weight: 600; color: var(--green-deep); }
+    .task-row .task-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    .pot-actions { display: flex; gap: 0.5rem; }
+    .pot-actions button {
+      flex: 1; padding: 0.5rem; border-radius: 8px; border: 1.5px solid var(--border);
+      background: var(--surface); cursor: pointer; font-size: 0.78rem; font-weight: 600;
+      color: var(--text); transition: var(--transition);
+    }
+    .pot-actions button:hover { border-color: var(--green-bright); color: var(--green-mid); }
+    .pot-actions .photo-btn { background: var(--green-mid); color: white; border-color: var(--green-mid); }
+    .pot-actions .photo-btn:hover { background: var(--green-deep); }
+
+    /* ===== WEEKLY PHOTO MODAL ===== */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 200; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--surface); border-radius: 20px; width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+    .modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted); }
+    .modal-body { padding: 1.5rem; }
+
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 2rem;
+      text-align: center; cursor: pointer; transition: var(--transition);
+    }
+    .upload-area:hover { border-color: var(--green-bright); background: var(--green-pale); }
+    .upload-area .upload-icon { font-size: 2.5rem; }
+    .upload-area p { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+    .analysis-result {
+      background: var(--surface2); border-radius: 12px; padding: 1rem; margin-top: 1rem; display: none;
+    }
+    .analysis-result.healthy { border-left: 4px solid var(--green-bright); }
+    .analysis-result.issue { border-left: 4px solid #f57f17; }
+
+    /* ===== GUIDE MODAL ===== */
+    .guide-step {
+      display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem;
+    }
+    .guide-step .step-num {
+      width: 32px; height: 32px; background: var(--green-mid); color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .guide-step .step-img {
+      font-size: 2rem; text-align: center; display: block;
+    }
+    .guide-step h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .guide-step p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+
+    .empty-state {
+      text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);
+    }
+    .empty-state .big-icon { font-size: 4rem; display: block; margin-bottom: 1rem; }
+
+    @media (max-width: 600px) {
+      .plant-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+      .plants-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="gwm-header">
+  <div>
+    <div class="gwm-title">🌱 Grow With Me</div>
+    <div style="font-size:0.8rem; opacity:0.7;">Apna plant ugao, AI ke saath!</div>
+  </div>
+  <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+    <div class="user-chip">👨‍🌾 <span id="userName">Loading...</span></div>
+    <a href="index.html" class="btn btn-secondary btn-sm" style="color:white; border-color:rgba(255,255,255,0.3);">🏠 Home</a>
+    <button class="btn btn-secondary btn-sm" onclick="doLogout()" style="color:white; border-color:rgba(255,255,255,0.3);">Logout</button>
+  </div>
+</div>
+
+<!-- MY PLANTS (shown when user has plants) -->
+<div class="my-plants" id="myPlantsSection">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem; padding-top:1.5rem;">
+    <div>
+      <div class="section-head">🌿 Mere Plants</div>
+      <div class="section-sub">Apne growing plants ki progress dekho</div>
+    </div>
+    <button class="btn btn-primary" onclick="showSelector()">+ Naya Plant Lagao</button>
+  </div>
+  <div class="plants-grid" id="plantsGrid"></div>
+</div>
+
+<!-- PLANT SELECTOR -->
+<div class="selector-wrap" id="selectorSection" style="display:none;">
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem;">
+    <button class="btn btn-secondary btn-sm" id="backBtn" onclick="hideSelector()" style="display:none;">← Wapas</button>
+    <div>
+      <div class="section-head">🌱 Konsa plant ugana chahte ho?</div>
+      <div class="section-sub">Plant choose karo, AI guide karega!</div>
+    </div>
+  </div>
+
+  <div class="category-tabs" id="categoryTabs"></div>
+  <div class="plant-grid" id="plantGrid"></div>
+
+  <div id="plantGuideSection" style="display:none;">
+    <div style="background:var(--green-pale); border-radius:14px; padding:1.25rem; margin-bottom:1.25rem; border:1.5px solid var(--green-bright);">
+      <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:var(--green-deep); margin-bottom:0.75rem;" id="guideTitle"></div>
+      <div id="guideSteps"></div>
+    </div>
+  </div>
+
+  <button class="grow-btn" id="growBtn" onclick="startGrowing()">🌱 Grow with Me!</button>
+</div>
+
+<!-- WEEKLY PHOTO MODAL -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>📷 Weekly Health Check</h3>
+      <button class="modal-close" onclick="closeModal('photoModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;" id="photoModalPlantName"></p>
+      <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="analyzePhoto(event)" />
+      <div class="upload-area" onclick="document.getElementById('photoInput').click()">
+        <div class="upload-icon">📸</div>
+        <p>Apne plant ki photo click karo ya upload karo</p>
+        <p style="font-size:0.75rem; margin-top:4px;">AI health check karega</p>
+      </div>
+      <div class="analysis-result" id="analysisResult">
+        <div style="font-weight:700; font-size:0.9rem; margin-bottom:0.5rem;" id="analysisTitle"></div>
+        <div style="font-size:0.85rem; line-height:1.6;" id="analysisText"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="guideModalTitle">Growing Guide</h3>
+      <button class="modal-close" onclick="closeModal('guideModal')">✕</button>
+    </div>
+    <div class="modal-body" id="guideModalBody"></div>
+  </div>
+</div>
+
+<script src="js/grow.js"></script>
+</body>
+</html>
