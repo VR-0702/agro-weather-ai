@@ -1,9 +1,15 @@
-// ===== AUTH CHECK =====
+// ===== AUTH =====
+var TOKEN       = localStorage.getItem('kisanai_token') || '';
 var currentUser = JSON.parse(localStorage.getItem('kisanai_user') || 'null');
-if (!currentUser) window.location.href = 'login.html';
+
+if (!TOKEN || !currentUser) { window.location.href = 'login.html'; }
 document.getElementById('userName').textContent = currentUser ? currentUser.name : '';
 
-function doLogout() {
+function authHeaders() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN }; }
+
+async function doLogout() {
+  await fetch('/api/auth/logout', { method:'POST', headers: authHeaders() }).catch(()=>{});
+  localStorage.removeItem('kisanai_token');
   localStorage.removeItem('kisanai_user');
   window.location.href = 'login.html';
 }
@@ -60,35 +66,41 @@ var currentPhotoPlantId = null;
 var userPlants = [];
 
 // ===== INIT =====
-function init() {
-  loadUserPlants();
+async function init() {
+  await loadUserPlants();
   renderCategoryTabs();
   renderPlantGrid('vegetables');
   renderMyPlants();
-
-  // Show selector if no plants
-  if (userPlants.length === 0) {
-    showSelector(false);
-  }
+  if (userPlants.length === 0) showSelector(false);
 }
 
 // ===== LOAD/SAVE =====
-function getUserKey() { return 'gwm_plants_' + currentUser.id; }
-
-function loadUserPlants() {
-  userPlants = JSON.parse(localStorage.getItem(getUserKey()) || '[]');
-  // Update growth progress
-  userPlants.forEach(function(p) {
-    var daysPassed = Math.floor((Date.now() - p.startDate) / 86400000);
-    p.progress = Math.min(100, Math.round((daysPassed / p.totalDays) * 100));
-    p.currentStageIdx = Math.min(p.stages.length - 1, Math.floor((daysPassed / p.totalDays) * (p.stages.length - 1)));
-  });
-  saveUserPlants();
+async async function loadUserPlants() {
+  try {
+    var res  = await fetch('/api/plants/', { headers: authHeaders() });
+    var data = await res.json();
+    if (data.success) {
+      userPlants = data.plants.map(function(p) {
+        // Parse stages string back to array
+        try { p.stages = JSON.parse(p.stages.replace(/'/g, '"')); } catch { p.stages = p.stages.split(','); }
+        var daysPassed = Math.floor((Date.now() - p.start_date) / 86400000);
+        p.startDate        = p.start_date;
+        p.totalDays        = p.total_days;
+        p.water            = p.water_schedule;
+        p.hindi            = p.plant_hindi;
+        p.icon             = p.plant_icon;
+        p.plantId          = p.plant_id;
+        p.progress         = Math.min(100, Math.round((daysPassed / p.total_days) * 100));
+        p.currentStageIdx  = Math.min(p.stages.length-1, Math.floor((daysPassed/p.total_days)*(p.stages.length-1)));
+        p.lastPhotoDate    = p.last_photo_date;
+        p.lastAnalysis     = p.last_analysis;
+        return p;
+      });
+    }
+  } catch(e) { console.error('Plants load error:', e); }
 }
 
-function saveUserPlants() {
-  localStorage.setItem(getUserKey(), JSON.stringify(userPlants));
-}
+function saveUserPlants() { /* handled by API */ }
 
 // ===== CATEGORY TABS =====
 function renderCategoryTabs() {
@@ -147,30 +159,25 @@ function selectPlant(id, cat) {
 function startGrowing() {
   if (!selectedPlant) return;
 
-  var newPlant = {
-    id:             Date.now().toString(),
-    plantId:        selectedPlant.id,
-    name:           selectedPlant.name,
-    hindi:          selectedPlant.hindi,
-    icon:           selectedPlant.icon,
+  var payload = {
+    plant_id:       selectedPlant.id,
+    plant_name:     selectedPlant.name,
+    plant_hindi:    selectedPlant.hindi,
+    plant_icon:     selectedPlant.icon,
     category:       selectedPlant.category,
-    stages:         selectedPlant.stages,
-    totalDays:      selectedPlant.days,
-    water:          selectedPlant.water,
+    stages:         JSON.stringify(selectedPlant.stages),
+    total_days:     selectedPlant.days,
+    water_schedule: selectedPlant.water,
     season:         selectedPlant.season,
-    startDate:      Date.now(),
-    progress:       0,
-    currentStageIdx:0,
-    health:         'good',
-    lastPhotoDate:  null,
-    lastAnalysis:   null,
-    notes:          '',
+    start_date:     Date.now(),
   };
 
-  userPlants.push(newPlant);
-  saveUserPlants();
-  hideSelector();
-  renderMyPlants();
+  fetch('/api/plants/add', { method:'POST', headers: authHeaders(), body: JSON.stringify(payload) })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) { loadUserPlants().then(function() { hideSelector(); renderMyPlants(); }); }
+      else alert('Error: ' + d.error);
+    }).catch(function(e) { console.error(e); });
 }
 
 // ===== RENDER MY PLANTS =====
@@ -338,16 +345,19 @@ function analyzePhoto(event) {
         document.getElementById('analysisTitle').textContent = isHealthy ? '✅ Plant Healthy Hai!' : '⚠️ Problem Mili!';
         document.getElementById('analysisText').textContent = answer;
 
-        // Update plant health
+        // Update plant health via API
         if (currentPhotoPlantId) {
-          var p = userPlants.find(function(x) { return x.id === currentPhotoPlantId; });
-          if (p) {
-            p.health = isHealthy ? 'good' : 'warn';
-            p.lastPhotoDate = Date.now();
-            p.lastAnalysis = answer;
-            saveUserPlants();
-            renderMyPlants();
-          }
+          fetch('/api/plants/' + currentPhotoPlantId, {
+            method:  'PUT',
+            headers: authHeaders(),
+            body: JSON.stringify({
+              health:          isHealthy ? 'good' : 'warn',
+              last_photo_date: Date.now(),
+              last_analysis:   answer
+            })
+          }).then(function() {
+            loadUserPlants().then(renderMyPlants);
+          }).catch(console.error);
         }
       })
       .catch(function() {
@@ -400,9 +410,10 @@ function openGuideModal(plantId) {
 // ===== UTILS =====
 function deletePlant(plantId) {
   if (!confirm('Is plant ko hatana chahte ho?')) return;
-  userPlants = userPlants.filter(function(p) { return p.id !== plantId; });
-  saveUserPlants();
-  renderMyPlants();
+  fetch('/api/plants/' + plantId, { method:'DELETE', headers: authHeaders() })
+    .then(function(r) { return r.json(); })
+    .then(function() { loadUserPlants().then(renderMyPlants); })
+    .catch(console.error);
 }
 
 function showSelector(showBack) {
