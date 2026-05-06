@@ -67,15 +67,23 @@ var userPlants = [];
 
 // ===== INIT =====
 async function init() {
-  await loadUserPlants();
+  try {
+    await loadUserPlants();
+  } catch(e) {
+    console.error('Load plants error:', e);
+  }
   renderCategoryTabs();
   renderPlantGrid('vegetables');
   renderMyPlants();
-  if (userPlants.length === 0) showSelector(false);
+
+  // Always show selector section content so + button works
+  if (userPlants.length === 0) {
+    showSelector(false);
+  }
 }
 
 // ===== LOAD/SAVE =====
-async async function loadUserPlants() {
+async function loadUserPlants() {
   try {
     var res  = await fetch('/api/plants/', { headers: authHeaders() });
     var data = await res.json();
@@ -419,7 +427,16 @@ function deletePlant(plantId) {
 function showSelector(showBack) {
   document.getElementById('selectorSection').style.display = 'block';
   document.getElementById('myPlantsSection').style.display = 'none';
-  if (showBack !== false) document.getElementById('backBtn').style.display = 'flex';
+  var backBtn = document.getElementById('backBtn');
+  if (backBtn) backBtn.style.display = (showBack === false) ? 'none' : 'flex';
+  // Re-render to make sure content is there
+  renderCategoryTabs();
+  renderPlantGrid(selectedCategory);
+  selectedPlant = null;
+  var growBtn = document.getElementById('growBtn');
+  if (growBtn) growBtn.style.display = 'none';
+  var guideSection = document.getElementById('plantGuideSection');
+  if (guideSection) guideSection.style.display = 'none';
 }
 
 function hideSelector() {
