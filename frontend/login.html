@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="css/style.css"/>
   <style>
     body{background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
-    .card{background:white;border-radius:24px;box-shadow:0 8px 40px rgba(0,0,0,0.12);width:100%;max-width:430px;overflow:hidden;}
+    .card{background:white;border-radius:24px;box-shadow:0 8px 40px rgba(0,0,0,0.12);width:100%;max-width:420px;overflow:hidden;}
     .card-top{background:linear-gradient(135deg,#1a3a1f,#2e7d32);padding:2.5rem 2rem;text-align:center;color:white;}
     .card-top h1{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin:.5rem 0 .2rem;}
     .card-top p{opacity:.8;font-size:.9rem;margin:0;}
@@ -15,13 +15,9 @@
     .tabs{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem;}
     .tab{flex:1;padding:.65rem;border:none;background:transparent;font-weight:600;font-size:.9rem;cursor:pointer;color:var(--text-muted);transition:.2s;}
     .tab.on{background:var(--green-mid);color:white;}
-    .flow{display:none;} .flow.on{display:block;}
-    .step{display:none;} .step.on{display:block;}
+    .section{display:none;} .section.on{display:block;}
     .err{background:#ffebee;color:#c62828;border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.85rem;display:none;}
     .suc{background:var(--green-pale);color:var(--green-deep);border-radius:8px;padding:.65rem 1rem;font-size:.85rem;margin-bottom:.85rem;display:none;}
-    .otp-row{display:flex;gap:.5rem;justify-content:center;margin:1rem 0;}
-    .otp-box{width:46px;height:54px;border:2px solid var(--border);border-radius:10px;text-align:center;font-size:1.4rem;font-weight:700;outline:none;transition:.2s;font-family:'Syne',sans-serif;}
-    .otp-box:focus{border-color:var(--green-bright);box-shadow:0 0 0 3px rgba(76,175,80,.15);}
     .pwd-wrap{position:relative;}
     .pwd-wrap input{padding-right:2.8rem;}
     .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-muted);}
@@ -30,12 +26,10 @@
     .req{list-style:none;padding:0;margin:.5rem 0 0;}
     .req li{font-size:.75rem;display:flex;align-items:center;gap:5px;margin:2px 0;color:var(--text-muted);}
     .req li.ok{color:var(--green-mid);}
-    .back-btn{display:flex;align-items:center;gap:4px;background:none;border:none;color:var(--text-muted);font-size:.85rem;cursor:pointer;margin-bottom:1rem;padding:0;}
+    .forgot-link{text-align:center;margin-top:.75rem;}
+    .forgot-link button{background:none;border:none;color:var(--green-mid);font-size:.85rem;cursor:pointer;font-weight:600;}
+    .back-btn{background:none;border:none;color:var(--text-muted);font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:4px;margin-bottom:1rem;padding:0;}
     .back-btn:hover{color:var(--green-mid);}
-    .resend-row{text-align:center;font-size:.82rem;color:var(--text-muted);margin-top:.75rem;}
-    .resend{background:none;border:none;color:var(--green-mid);font-weight:700;cursor:pointer;font-size:.82rem;}
-    .resend:disabled{color:var(--text-muted);cursor:default;}
-    .timer{font-size:.78rem;color:var(--text-muted);}
   </style>
 </head>
 <body>
@@ -49,339 +43,194 @@
 
     <!-- TABS -->
     <div class="tabs" id="mainTabs">
-      <button class="tab on" onclick="switchTab('login')">Login</button>
-      <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+      <button class="tab on" onclick="show('login')">Login</button>
+      <button class="tab" onclick="show('signup')">Sign Up</button>
     </div>
 
     <!-- ===== LOGIN ===== -->
-    <div class="flow on" id="loginFlow">
-      <!-- Step 1 -->
-      <div class="step on" id="ls1">
-        <div class="err" id="lerr"></div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" id="lemail" placeholder="aapka@email.com" autocomplete="email"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div class="pwd-wrap">
-            <input type="password" class="form-control" id="lpwd" placeholder="Password" autocomplete="current-password"/>
-            <button class="eye" onclick="toggleEye('lpwd',this)">👁️</button>
-          </div>
-        </div>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:.75rem;" onclick="doLogin()">Login Karo</button>
-        <div style="text-align:center;">
-          <button class="back-btn" style="display:inline-flex;" onclick="showForgot()">🔑 Password bhool gaye?</button>
+    <div class="section on" id="loginSec">
+      <div class="err" id="lerr"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" id="lemail" placeholder="aapka@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="pwd-wrap">
+          <input type="password" class="form-control" id="lpwd" placeholder="Password" autocomplete="current-password"/>
+          <button class="eye" onclick="toggleEye('lpwd',this)">👁️</button>
         </div>
       </div>
-      <!-- Step 2 - verify -->
-      <div class="step" id="ls2">
-        <button class="back-btn" onclick="toStep('loginFlow','ls1')">← Wapas</button>
-        <div style="text-align:center;margin-bottom:1.25rem;">
-          <div style="font-size:2.5rem;">📧</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin:.5rem 0;">Email Verify Karo</div>
-          <div style="font-size:.85rem;color:var(--text-muted);" id="lOtpEmail"></div>
-        </div>
-        <div class="err" id="lOtpErr"></div>
-        <div class="otp-row" id="lOtpBoxes"></div>
-        <button class="btn btn-primary" style="width:100%;" onclick="doVerify('login')">Verify Karo</button>
-        <div class="resend-row">OTP nahi aaya? <button class="resend" id="lResendBtn" onclick="doResend('verify','login')">Dobara bhejo</button> <span class="timer" id="lTimer"></span></div>
+      <button class="btn btn-primary" style="width:100%;margin-bottom:.5rem;" onclick="doLogin()">Login Karo</button>
+      <div class="forgot-link">
+        <button onclick="show('forgot')">🔑 Password bhool gaye?</button>
       </div>
     </div>
 
     <!-- ===== SIGNUP ===== -->
-    <div class="flow" id="signupFlow">
-      <!-- Step 1 -->
-      <div class="step on" id="ss1">
-        <div class="err" id="serr"></div>
-        <div class="form-group">
-          <label class="form-label">Aapka Naam</label>
-          <input type="text" class="form-control" id="sname" placeholder="Poora naam" autocomplete="name"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" id="semail" placeholder="aapka@email.com" autocomplete="email"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <div class="pwd-wrap">
-            <input type="password" class="form-control" id="spwd" placeholder="Strong password banao" oninput="checkPwd(this.value)" autocomplete="new-password"/>
-            <button class="eye" onclick="toggleEye('spwd',this)">👁️</button>
-          </div>
-          <div class="bar"><div class="bar-fill" id="pwdBar"></div></div>
-          <ul class="req" id="pwdReqs">
-            <li id="r1">○ Kam se kam 8 characters</li>
-            <li id="r2">○ Ek Capital letter (A-Z)</li>
-            <li id="r3">○ Ek Number (0-9)</li>
-          </ul>
-        </div>
-        <button class="btn btn-primary" style="width:100%;" onclick="doSignup()">Account Banao</button>
+    <div class="section" id="signupSec">
+      <div class="err" id="serr"></div>
+      <div class="suc" id="ssuc"></div>
+      <div class="form-group">
+        <label class="form-label">Aapka Naam</label>
+        <input type="text" class="form-control" id="sname" placeholder="Poora naam" autocomplete="name"/>
       </div>
-      <!-- Step 2 - OTP -->
-      <div class="step" id="ss2">
-        <div style="text-align:center;margin-bottom:1.25rem;">
-          <div style="font-size:3rem;">📬</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin:.5rem 0;">OTP Check Karo!</div>
-          <div style="font-size:.85rem;color:var(--text-muted);">6-digit OTP bheja gaya:</div>
-          <div style="font-weight:700;color:var(--green-mid);margin-top:4px;" id="sOtpEmail"></div>
-        </div>
-        <div class="err" id="sOtpErr"></div>
-        <div class="otp-row" id="sOtpBoxes"></div>
-        <button class="btn btn-primary" style="width:100%;margin-bottom:.75rem;" onclick="doVerify('signup')">Verify Karo &amp; Login</button>
-        <div class="resend-row">OTP nahi aaya? <button class="resend" id="sResendBtn" onclick="doResend('verify','signup')">Dobara bhejo</button> <span class="timer" id="sTimer"></span></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" id="semail" placeholder="aapka@email.com" autocomplete="email"/>
       </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="pwd-wrap">
+          <input type="password" class="form-control" id="spwd" placeholder="Strong password banao" oninput="checkPwd(this.value)" autocomplete="new-password"/>
+          <button class="eye" onclick="toggleEye('spwd',this)">👁️</button>
+        </div>
+        <div class="bar"><div class="bar-fill" id="pwdBar"></div></div>
+        <ul class="req">
+          <li id="r1">○ Kam se kam 8 characters</li>
+          <li id="r2">○ Ek Capital letter (A-Z)</li>
+          <li id="r3">○ Ek Number (0-9)</li>
+        </ul>
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="doSignup()">Account Banao</button>
     </div>
 
     <!-- ===== FORGOT PASSWORD ===== -->
-    <div class="flow" id="forgotFlow">
-      <!-- Step 1 -->
-      <div class="step on" id="fs1">
-        <button class="back-btn" onclick="showLogin()">← Login pe wapas</button>
-        <div style="text-align:center;margin-bottom:1rem;">
-          <div style="font-size:2.5rem;">🔑</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin:.5rem 0;">Password Reset</div>
-          <div style="font-size:.85rem;color:var(--text-muted);">Email daalo — OTP bhejenge</div>
-        </div>
-        <div class="err" id="ferr"></div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" id="femail" placeholder="registered@email.com"/>
-        </div>
-        <button class="btn btn-primary" style="width:100%;" onclick="doForgot()">OTP Bhejo</button>
+    <div class="section" id="forgotSec">
+      <button class="back-btn" onclick="show('login')">← Login pe wapas</button>
+      <div style="text-align:center;margin-bottom:1.25rem;">
+        <div style="font-size:2.5rem;">🔑</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;margin:.5rem 0;">Password Reset</div>
+        <div style="font-size:.85rem;color:var(--text-muted);">Email aur naya password daalo</div>
       </div>
-      <!-- Step 2 -->
-      <div class="step" id="fs2">
-        <div style="text-align:center;margin-bottom:1rem;">
-          <div style="font-size:2.5rem;">🔐</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin:.5rem 0;">Naya Password Set Karo</div>
-        </div>
-        <div class="err" id="rerr"></div>
-        <div class="suc" id="rsuc"></div>
-        <label class="form-label">OTP (Email se)</label>
-        <div class="otp-row" id="fOtpBoxes"></div>
-        <div class="form-group" style="margin-top:1rem;">
-          <label class="form-label">Naya Password</label>
-          <div class="pwd-wrap">
-            <input type="password" class="form-control" id="npwd" placeholder="Naya strong password" oninput="checkPwd(this.value,'n')"/>
-            <button class="eye" onclick="toggleEye('npwd',this)">👁️</button>
-          </div>
-          <div class="bar"><div class="bar-fill" id="nBar"></div></div>
-        </div>
-        <button class="btn btn-primary" style="width:100%;" onclick="doReset()">Password Reset Karo</button>
-        <div class="resend-row"><button class="resend" id="fResendBtn" onclick="doResend('reset','forgot')">OTP dobara bhejo</button> <span class="timer" id="fTimer"></span></div>
+      <div class="err" id="ferr"></div>
+      <div class="suc" id="fsuc"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" id="femail" placeholder="registered@email.com"/>
       </div>
+      <div class="form-group">
+        <label class="form-label">Naya Password</label>
+        <div class="pwd-wrap">
+          <input type="password" class="form-control" id="fnpwd" placeholder="Naya strong password" oninput="checkPwd(this.value,'f')"/>
+          <button class="eye" onclick="toggleEye('fnpwd',this)">👁️</button>
+        </div>
+        <div class="bar"><div class="bar-fill" id="fBar"></div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;" onclick="doReset()">Password Reset Karo</button>
     </div>
 
   </div>
 </div>
 
 <script>
-// ===== CHECK IF ALREADY LOGGED IN =====
-var existingToken = localStorage.getItem('kisanai_token');
-if (existingToken) {
-  fetch('/api/auth/me', {headers:{'Authorization':'Bearer '+existingToken}})
+// Redirect if already logged in
+var t = localStorage.getItem('kisanai_token');
+if (t) {
+  fetch('/api/auth/me', {headers:{'Authorization':'Bearer '+t}})
     .then(r=>r.json()).then(d=>{ if(d.success) location.href='index.html'; }).catch(()=>{});
 }
 
-var currentEmail = '';
-
-// ===== OTP BOXES =====
-function makeOtpBoxes(containerId) {
-  var c = document.getElementById(containerId);
-  c.innerHTML = '';
-  for (var i=0; i<6; i++) {
-    var b = document.createElement('input');
-    b.type='text'; b.maxLength=1; b.className='otp-box'; b.dataset.i=i;
-    b.addEventListener('input', function(e){
-      e.target.value = e.target.value.replace(/[^0-9]/g,'');
-      if (e.target.value && e.target.nextElementSibling) e.target.nextElementSibling.focus();
-    });
-    b.addEventListener('keydown', function(e){
-      if (e.key==='Backspace' && !e.target.value && e.target.previousElementSibling)
-        e.target.previousElementSibling.focus();
-    });
-    b.addEventListener('paste', function(e){
-      e.preventDefault();
-      var p=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
-      var boxes=e.target.parentElement.querySelectorAll('.otp-box');
-      p.split('').forEach((ch,i)=>{ if(boxes[i]) boxes[i].value=ch; });
-      if(boxes[p.length]) boxes[p.length].focus();
-    });
-    c.appendChild(b);
+// ===== TAB SWITCH =====
+function show(sec) {
+  ['login','signup','forgot'].forEach(s => {
+    document.getElementById(s+'Sec').classList.toggle('on', s===sec);
+  });
+  var tabs = document.getElementById('mainTabs');
+  tabs.style.display = sec==='forgot' ? 'none' : 'flex';
+  if (sec!=='forgot') {
+    document.querySelectorAll('.tab').forEach((b,i) =>
+      b.classList.toggle('on', (i===0&&sec==='login')||(i===1&&sec==='signup'))
+    );
   }
 }
 
-function getOtp(containerId) {
-  return Array.from(document.getElementById(containerId).querySelectorAll('.otp-box')).map(b=>b.value).join('');
-}
-
-// ===== TABS =====
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',(i===0&&tab==='login')||(i===1&&tab==='signup')));
-  document.getElementById('loginFlow').classList.toggle('on', tab==='login');
-  document.getElementById('signupFlow').classList.toggle('on', tab==='signup');
-  document.getElementById('forgotFlow').classList.remove('on');
-  document.getElementById('mainTabs').style.display='flex';
-}
-
-function showForgot() {
-  ['loginFlow','signupFlow'].forEach(f=>document.getElementById(f).classList.remove('on'));
-  document.getElementById('forgotFlow').classList.add('on');
-  document.getElementById('mainTabs').style.display='none';
-  toStep('forgotFlow','fs1');
-  makeOtpBoxes('fOtpBoxes');
-}
-
-function showLogin() {
-  document.getElementById('forgotFlow').classList.remove('on');
-  document.getElementById('loginFlow').classList.add('on');
-  document.getElementById('mainTabs').style.display='flex';
-  toStep('loginFlow','ls1');
-}
-
-function toStep(flowId, stepId) {
-  document.getElementById(flowId).querySelectorAll('.step').forEach(s=>s.classList.remove('on'));
-  document.getElementById(stepId).classList.add('on');
-}
-
-// ===== MSG =====
+// ===== UTILS =====
 function showErr(id, msg) { var e=document.getElementById(id); e.textContent=msg; e.style.display='block'; }
-function hideErr(id) { document.getElementById(id).style.display='none'; }
 function showSuc(id, msg) { var e=document.getElementById(id); e.textContent=msg; e.className='suc'; e.style.display='block'; }
-
-function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-
-// ===== PASSWORD STRENGTH =====
-function checkPwd(pwd, prefix) {
-  var barId = (prefix||'')+'pwdBar' === 'pwdBar' ? 'pwdBar' : 'nBar';
-  if (prefix==='n') barId='nBar';
-  var bar  = document.getElementById(barId);
-  if (!bar) return;
-  var l=pwd.length>=8, u=/[A-Z]/.test(pwd), n=/[0-9]/.test(pwd);
-  var score = [l,u,n].filter(Boolean).length;
-  var colors=['#f44336','#ff9800','#4caf50'];
-  bar.style.width=(score*33.3)+'%';
-  bar.style.background=colors[score-1]||'#e0e0e0';
-  var upd=(id,ok)=>{ var el=document.getElementById(id); if(!el)return; el.className=ok?'ok':''; el.childNodes[0].textContent=ok?'✓ ':'○ '; };
-  upd('r1',l); upd('r2',u); upd('r3',n);
-}
+function hideMsg(id)       { document.getElementById(id).style.display='none'; }
+function validEmail(e)     { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
 function toggleEye(inputId, btn) {
-  var inp=document.getElementById(inputId);
-  inp.type=inp.type==='password'?'text':'password';
-  btn.textContent=inp.type==='password'?'👁️':'🙈';
+  var inp = document.getElementById(inputId);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  btn.textContent = inp.type==='password' ? '👁️' : '🙈';
 }
 
-// ===== TIMER =====
-function startTimer(btnId, timerId, secs) {
-  var btn=document.getElementById(btnId), tim=document.getElementById(timerId);
-  btn.disabled=true;
-  var left=secs;
-  var iv=setInterval(()=>{
-    tim.textContent='('+left+'s)'; left--;
-    if(left<0){clearInterval(iv); btn.disabled=false; tim.textContent='';}
-  },1000);
+function checkPwd(pwd, prefix) {
+  var barId = prefix==='f' ? 'fBar' : 'pwdBar';
+  var bar   = document.getElementById(barId);
+  if (!bar) return;
+  var l=pwd.length>=8, u=/[A-Z]/.test(pwd), n=/[0-9]/.test(pwd);
+  var score=[l,u,n].filter(Boolean).length;
+  bar.style.width=(score*33.3)+'%';
+  bar.style.background=['','#f44336','#ff9800','#4caf50'][score]||'#e0e0e0';
+  if (!prefix) {
+    var upd=(id,ok)=>{ var el=document.getElementById(id); if(!el)return; el.className=ok?'ok':''; el.childNodes[0].textContent=ok?'✓ ':'○ '; };
+    upd('r1',l); upd('r2',u); upd('r3',n);
+  }
 }
 
-// ===== API =====
 async function api(url, body) {
-  var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  var r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
   return r.json();
 }
 
-function saveSession(d) {
+function saveAndGo(d) {
   localStorage.setItem('kisanai_token', d.token);
   localStorage.setItem('kisanai_user',  JSON.stringify(d.user));
-  location.href='index.html';
+  location.href = 'index.html';
 }
 
 // ===== SIGNUP =====
 async function doSignup() {
-  hideErr('serr');
-  var name=document.getElementById('sname').value.trim();
-  var email=document.getElementById('semail').value.trim().toLowerCase();
-  var pwd=document.getElementById('spwd').value;
-  if(!name||!email||!pwd){showErr('serr','Sab fields bharo');return;}
-  if(!validEmail(email)){showErr('serr','Valid email daalo');return;}
-  var d=await api('/api/auth/signup',{name,email,password:pwd});
-  if(!d.success){showErr('serr',d.error);return;}
-  currentEmail=email;
-  document.getElementById('sOtpEmail').textContent=email;
-  makeOtpBoxes('sOtpBoxes');
-  toStep('signupFlow','ss2');
-  startTimer('sResendBtn','sTimer',60);
+  hideMsg('serr'); hideMsg('ssuc');
+  var name  = document.getElementById('sname').value.trim();
+  var email = document.getElementById('semail').value.trim().toLowerCase();
+  var pwd   = document.getElementById('spwd').value;
+
+  if (!name||!email||!pwd) { showErr('serr','Sab fields bharo'); return; }
+  if (!validEmail(email))  { showErr('serr','Valid email daalo'); return; }
+
+  var d = await api('/api/auth/signup', {name, email, password:pwd});
+  if (!d.success) { showErr('serr', d.error); return; }
+  saveAndGo(d);
 }
 
 // ===== LOGIN =====
 async function doLogin() {
-  hideErr('lerr');
-  var email=document.getElementById('lemail').value.trim().toLowerCase();
-  var pwd=document.getElementById('lpwd').value;
-  if(!email||!pwd){showErr('lerr','Email aur password daalo');return;}
-  var d=await api('/api/auth/login',{email,password:pwd});
-  if(d.needs_verification){
-    currentEmail=email;
-    document.getElementById('lOtpEmail').textContent=email;
-    makeOtpBoxes('lOtpBoxes');
-    toStep('loginFlow','ls2');
-    startTimer('lResendBtn','lTimer',60);
-    return;
-  }
-  if(!d.success){showErr('lerr',d.error);return;}
-  saveSession(d);
+  hideMsg('lerr');
+  var email = document.getElementById('lemail').value.trim().toLowerCase();
+  var pwd   = document.getElementById('lpwd').value;
+
+  if (!email||!pwd) { showErr('lerr','Email aur password daalo'); return; }
+
+  var d = await api('/api/auth/login', {email, password:pwd});
+  if (!d.success) { showErr('lerr', d.error); return; }
+  saveAndGo(d);
 }
 
-// ===== VERIFY OTP =====
-async function doVerify(flow) {
-  var boxId=flow==='login'?'lOtpBoxes':'sOtpBoxes';
-  var errId=flow==='login'?'lOtpErr':'sOtpErr';
-  hideErr(errId);
-  var otp=getOtp(boxId);
-  if(otp.length!==6){showErr(errId,'6 digit OTP daalo');return;}
-  var d=await api('/api/auth/verify-email',{email:currentEmail,otp});
-  if(!d.success){showErr(errId,d.error);return;}
-  saveSession(d);
-}
-
-// ===== FORGOT =====
-async function doForgot() {
-  hideErr('ferr');
-  var email=document.getElementById('femail').value.trim().toLowerCase();
-  if(!validEmail(email)){showErr('ferr','Valid email daalo');return;}
-  var d=await api('/api/auth/forgot-password',{email});
-  currentEmail=email;
-  toStep('forgotFlow','fs2');
-  startTimer('fResendBtn','fTimer',60);
-}
-
+// ===== FORGOT / RESET =====
 async function doReset() {
-  hideErr('rerr');
-  var otp=getOtp('fOtpBoxes');
-  var pwd=document.getElementById('npwd').value;
-  if(otp.length!==6){showErr('rerr','6 digit OTP daalo');return;}
-  if(pwd.length<8){showErr('rerr','Password kam se kam 8 characters ka hona chahiye');return;}
-  var d=await api('/api/auth/reset-password',{email:currentEmail,otp,new_password:pwd});
-  if(!d.success){showErr('rerr',d.error);return;}
-  showSuc('rsuc',d.message);
-  setTimeout(showLogin,2500);
-}
+  hideMsg('ferr'); hideMsg('fsuc');
+  var email = document.getElementById('femail').value.trim().toLowerCase();
+  var pwd   = document.getElementById('fnpwd').value;
 
-// ===== RESEND =====
-async function doResend(type,flow) {
-  await api('/api/auth/resend-otp',{email:currentEmail,type});
-  var m={login:['lResendBtn','lTimer'],signup:['sResendBtn','sTimer'],forgot:['fResendBtn','fTimer']};
-  if(m[flow]) startTimer(m[flow][0],m[flow][1],60);
+  if (!email||!pwd) { showErr('ferr','Email aur naya password daalo'); return; }
+  if (!validEmail(email)) { showErr('ferr','Valid email daalo'); return; }
+
+  var d = await api('/api/auth/forgot-password', {email, new_password:pwd});
+  if (!d.success) { showErr('ferr', d.error); return; }
+  showSuc('fsuc', d.message);
+  setTimeout(() => show('login'), 2500);
 }
 
 // Enter key
-document.addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  var s=document.querySelector('.step.on');
-  if(!s)return;
-  if(s.id==='ls1')doLogin();
-  else if(s.id==='ss1')doSignup();
-  else if(s.id==='fs1')doForgot();
-  else if(s.id==='fs2')doReset();
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('loginSec').classList.contains('on'))  doLogin();
+  if (document.getElementById('signupSec').classList.contains('on')) doSignup();
+  if (document.getElementById('forgotSec').classList.contains('on')) doReset();
 });
 </script>
 </body>
