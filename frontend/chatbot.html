@@ -6,8 +6,6 @@
   <title>KisanAI Chat</title>
 
   <link rel="stylesheet" href="css/style.css" />
-
-
   <script src="config.js"></script>
 
   <style>
@@ -264,14 +262,9 @@
     }
 
     .typing-dots span:nth-child(2),
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dots span:nth-child(3),
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
     @keyframes bounce {
       0%,60%,100% { transform: translateY(0); }
@@ -286,6 +279,7 @@
       flex-shrink: 0;
     }
 
+    /* ✅ FIX: ID matches JS (attachmentRow) */
     .attachment-row {
       display: none;
       align-items: center;
@@ -399,8 +393,8 @@
     }
 
     @keyframes ripple {
-      0% { width: 40px; height: 40px; opacity: 0.8; }
-      100% { width: 72px; height: 72px; opacity: 0; }
+      0%  { width: 40px;  height: 40px;  opacity: 0.8; }
+      100%{ width: 72px;  height: 72px;  opacity: 0; }
     }
 
     #sendBtn {
@@ -419,13 +413,8 @@
       transition: all 0.2s;
     }
 
-    #sendBtn:hover {
-      background: var(--green-deep);
-    }
-
-    #sendBtn:disabled {
-      opacity: 0.5;
-    }
+    #sendBtn:hover  { background: var(--green-deep); }
+    #sendBtn:disabled { opacity: 0.5; }
 
     #cameraPanel {
       display: none;
@@ -474,9 +463,7 @@
       transition: transform 0.2s;
     }
 
-    .capture-btn:active {
-      transform: scale(0.92);
-    }
+    .capture-btn:active { transform: scale(0.92); }
 
     .mobile-bottom-nav {
       display: none;
@@ -503,9 +490,7 @@
       transition: all 0.2s;
     }
 
-    .mob-nav-btn .icon {
-      font-size: 1.3rem;
-    }
+    .mob-nav-btn .icon { font-size: 1.3rem; }
 
     .mob-nav-btn.active,
     .mob-nav-btn:hover {
@@ -547,24 +532,15 @@
       transform: translateX(0);
     }
 
-    .mobile-drawer.open {
-      display: block;
-    }
+    .mobile-drawer.open { display: block; }
 
     @media (max-width: 768px) {
-      .chat-sidebar {
-        display: none;
-      }
-
-      .mobile-bottom-nav {
-        display: flex;
-      }
+      .chat-sidebar      { display: none; }
+      .mobile-bottom-nav { display: flex; }
     }
 
     @media (min-width: 769px) {
-      .mobile-bottom-nav {
-        display: none;
-      }
+      .mobile-bottom-nav { display: none; }
     }
   </style>
 </head>
@@ -575,7 +551,6 @@
     <a href="index.html" class="nav-brand">
       <span style="font-size:1.3rem;">🌱</span> KisanAI
     </a>
-
     <ul class="nav-links">
       <li><a href="index.html">🏠 Home</a></li>
       <li><a href="crop.html">🌾 Crops</a></li>
@@ -583,20 +558,21 @@
     </ul>
   </nav>
 
+  <!-- ===== CAMERA PANEL ===== -->
   <div id="cameraPanel">
     <p class="cam-hint">📷 Plant ko camera ke saamne rakho</p>
     <video id="cameraFeed" autoplay playsinline muted></video>
-
     <div class="cam-controls">
       <button class="btn btn-secondary btn-sm" onclick="closeCameraPanel()">✕ Band Karo</button>
       <button class="capture-btn" onclick="captureAndAnalyze()">📸</button>
     </div>
   </div>
 
+  <!-- ===== MOBILE DRAWER ===== -->
   <div class="mobile-drawer" id="mobileDrawer">
     <div class="drawer-overlay" onclick="closeDrawer()"></div>
-
     <div class="drawer-content">
+
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <div style="font-family:'Syne',sans-serif; font-weight:800;">🌱 KisanAI</div>
         <button onclick="closeDrawer()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
@@ -605,11 +581,13 @@
       <div>
         <div class="sidebar-title">📷 Image Upload</div>
 
-        <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
+        <!-- ✅ FIX: upload-zone triggers hidden input correctly -->
+        <div class="upload-zone" onclick="triggerImageUpload('imageInput')">
           <div style="font-size:1.6rem;">🌿</div>
           <div>Plant photo upload karo</div>
         </div>
 
+        <!-- ✅ FIX: onchange handler set, accept="image/*" -->
         <input
           type="file"
           id="imageInput"
@@ -618,7 +596,7 @@
           style="display:none;"
         />
 
-        <div id="imagePreviewArea"></div>
+        <div id="imagePreviewArea" style="margin-top:0.5rem;"></div>
       </div>
 
       <div>
@@ -642,30 +620,33 @@
       <button class="btn btn-danger btn-sm" style="width:100%;" onclick="clearChat(); closeDrawer();">
         🗑️ Clear Chat
       </button>
+
     </div>
   </div>
 
+  <!-- ===== MAIN LAYOUT ===== -->
   <div class="chat-wrapper">
 
+    <!-- DESKTOP SIDEBAR -->
     <aside class="chat-sidebar">
       <div>
         <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1rem; margin-bottom:0.25rem;">
           🌱 KisanAI
         </div>
-        <div style="font-size:0.7rem; opacity:0.5;">
-          Plant Doctor & Farm Advisor
-        </div>
+        <div style="font-size:0.7rem; opacity:0.5;">Plant Doctor &amp; Farm Advisor</div>
       </div>
 
       <div>
         <div class="sidebar-title">📷 Image Upload</div>
 
-        <div class="upload-zone" onclick="document.getElementById('imageInputDesktop').click()">
+        <!-- ✅ FIX: triggerImageUpload used instead of direct .click() -->
+        <div class="upload-zone" onclick="triggerImageUpload('imageInputDesktop')">
           <div style="font-size:1.6rem;">🌿</div>
           <div>Plant photo upload karo</div>
           <div style="opacity:0.45; font-size:0.7rem; margin-top:2px;">JPG, PNG, WEBP</div>
         </div>
 
+        <!-- ✅ FIX: onchange handler set -->
         <input
           type="file"
           id="imageInputDesktop"
@@ -692,9 +673,7 @@
           ✅ English &nbsp; ✅ Hindi<br>
           ✅ Hinglish &nbsp; ✅ Punjabi<br>
           ✅ Tamil, Telugu, Bengali<br><br>
-          <span style="opacity:0.6; font-size:0.72rem;">
-            Jis bhasha mein poochho, usi mein jawab!
-          </span>
+          <span style="opacity:0.6; font-size:0.72rem;">Jis bhasha mein poochho, usi mein jawab!</span>
         </div>
       </div>
 
@@ -703,6 +682,7 @@
       </button>
     </aside>
 
+    <!-- CHAT MAIN -->
     <div class="chat-main">
 
       <div class="chat-header">
@@ -713,18 +693,13 @@
             <div class="bot-status"><span class="sdot"></span> Online</div>
           </div>
         </div>
-
         <div class="header-actions">
           <img
             id="capturedPreview"
             style="display:none; width:28px; height:28px; border-radius:5px; border:2px solid var(--green-bright); object-fit:cover;"
           />
-
           <span id="analyzeStatus" style="font-size:0.72rem; color:var(--text-muted);"></span>
-
           <button class="icon-btn" id="muteBtn" onclick="toggleMute()" title="Mute">🔊</button>
-
-          <!-- IMPORTANT: JS uses cameraBtn, so id fixed -->
           <button class="icon-btn" id="cameraBtn" onclick="toggleCamera()" title="Camera" style="display:none;">📷</button>
         </div>
       </div>
@@ -745,8 +720,8 @@ Aap mujhse <strong>kisi bhi bhasha</strong> mein baat kar sakte ho — Hindi, En
 
       <div class="chat-input-area">
 
-        <!-- IMPORTANT: JS uses attachmentPreview, so id fixed -->
-        <div class="attachment-row" id="attachmentPreview">
+        <!-- ✅ FIX: ID is now "attachmentRow" to match JS -->
+        <div class="attachment-row" id="attachmentRow">
           <span>📷</span>
           <div id="attachThumb"></div>
         </div>
@@ -771,13 +746,15 @@ Aap mujhse <strong>kisi bhi bhasha</strong> mein baat kar sakte ho — Hindi, En
         </div>
       </div>
 
+      <!-- MOBILE BOTTOM NAV -->
       <div class="mobile-bottom-nav">
         <button class="mob-nav-btn" onclick="openDrawer()">
           <span class="icon">☰</span>
           <span>Menu</span>
         </button>
 
-        <button class="mob-nav-btn" onclick="document.getElementById('imageInput').click()">
+        <!-- ✅ FIX: triggerImageUpload used, resets input so same file can re-upload -->
+        <button class="mob-nav-btn" onclick="triggerImageUpload('imageInput')">
           <span class="icon">🖼️</span>
           <span>Image</span>
         </button>
@@ -800,33 +777,23 @@ Aap mujhse <strong>kisi bhi bhasha</strong> mein baat kar sakte ho — Hindi, En
     function openDrawer() {
       var d = document.getElementById('mobileDrawer');
       d.style.display = 'block';
-
-      setTimeout(function () {
-        d.classList.add('open');
-      }, 10);
+      setTimeout(function() { d.classList.add('open'); }, 10);
     }
 
     function closeDrawer() {
       var d = document.getElementById('mobileDrawer');
       d.classList.remove('open');
-
-      setTimeout(function () {
-        d.style.display = 'none';
-      }, 300);
+      setTimeout(function() { d.style.display = 'none'; }, 300);
     }
 
     function quickFromDrawer(q) {
       closeDrawer();
-
-      setTimeout(function () {
-        sendQuickQ(q);
-      }, 350);
+      setTimeout(function() { sendQuickQ(q); }, 350);
     }
 
     function updateCameraButtonVisibility() {
       var btn = document.getElementById('cameraBtn');
       if (!btn) return;
-
       btn.style.display = window.innerWidth > 768 ? 'flex' : 'none';
     }
 
