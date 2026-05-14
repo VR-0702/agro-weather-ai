@@ -1,39 +1,5 @@
 // ===== CONFIG =====
 // GROQ_API_KEY is handled by backend — no key needed in frontend
-// Model config is in backend
-
-const SYSTEM_PROMPT = `You are KisanAI — a smart agriculture assistant.
-
-LANGUAGE RULE (STRICT):
-- Hindi/Hinglish question → SIRF HINDI SCRIPT (Devanagari) mein jawab do. Roman Hindi NAHI.
-- English question → English mein jawab do
-- Jo language user ki, wohi teri — kabhi mat badlo
-
-SABSE ZAROORI RULE — SIRF UTNA BATAO JO PUCHHA JAYE:
-
-User ne sirf naam puchha → sirf naam batao, kuch aur mat batao
-User ne disease puchhi → sirf disease batao
-User ne poora diagnosis manga → tab poora format use karo
-User ne general question puchha → seedha simple jawab do
-
-EXAMPLES:
-Q: "is plant ka naam kya hai?" → "यह टमाटर का पौधा है।" (bas itna)
-Q: "isme kya bimari hai?" → "इसमें अर्ली ब्लाइट रोग है।" (bas itna)
-Q: "poori detail batao" → tab poora format use karo
-Q: "ilaj batao" → sirf ilaj batao, baki kuch nahi
-Q: "aaj ka mausam kaisa hai?" → मौसम ke baare mein jawab do
-Q: "hello" → greet karo
-
-POORA FORMAT — sirf tab jab user ne sab manga ho:
-पौधा: [naam]
-समस्या: [kya hai]
-कारण: [kyun]
-देसी उपाय: [solution]
-दवाई: [dose ke saath]
-बचाव: [tips]
-
-TONE: Koi emoji nahi. Koi bhai/yaar nahi. Simple, seedha, clear.
-Hamesha chhota jawab prefer karo — user ne jo manga wohi do, zyada nahi.`;
 
 // ===== STATE =====
 var uploadedImageDesc = '';
@@ -135,7 +101,8 @@ function sendMessage() {
   input.value = '';
   autoResize(input);
 
-  var imageDesc   = uploadedImageDesc;
+  // ✅ FIX: Save image description BEFORE clearing
+  var imageDesc = uploadedImageDesc;
   clearImageAttachment();
 
   var userContent = text;
@@ -145,7 +112,8 @@ function sendMessage() {
   showTyping();
   document.getElementById('sendBtn').disabled = true;
 
-  callGroq(chatHistory).then(function(answer) {
+  // ✅ FIX: Pass imageDesc explicitly to callGroq
+  callGroq(chatHistory, imageDesc).then(function(answer) {
     hideTyping();
     chatHistory.push({ role: 'assistant', content: answer });
     appendMessage('bot', answer);
@@ -158,10 +126,10 @@ function sendMessage() {
   });
 }
 
-// ===== GROQ API — Backend Se (Safe for Replit/Production) =====
-function callGroq(history) {
-  // Get last user message
-  var lastMsg = history[history.length - 1];
+// ===== GROQ API — Backend Se =====
+// ✅ FIX: Accept imageDesc as parameter instead of relying on global (which may be cleared)
+function callGroq(history, imageDesc) {
+  var lastMsg  = history[history.length - 1];
   var question = lastMsg ? lastMsg.content : '';
 
   return fetch('/api/chatbot/ask', {
@@ -169,8 +137,8 @@ function callGroq(history) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       question:          question,
-      image_description: '',
-      history:           history.slice(0, -1) // send history without last msg
+      image_description: imageDesc || '',   // ✅ FIX: was hardcoded ''
+      history:           history.slice(0, -1)
     })
   }).then(function(res) {
     if (!res.ok) throw new Error('Server error ' + res.status);
@@ -288,46 +256,82 @@ function captureAndAnalyze() {
 }
 
 // ===== IMAGE UPLOAD =====
+// ✅ FIX: Properly triggers on both mobile and desktop inputs
 function handleImageUpload(event) {
   var file = event.target.files[0];
   if (!file) return;
 
+  // ✅ FIX: Validate file type
+  if (!file.type.startsWith('image/')) {
+    alert('Sirf image files upload karo (JPG, PNG, WEBP)');
+    return;
+  }
+
+  // ✅ FIX: Validate file size (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Image bahut badi hai. 10MB se chhoti image use karo.');
+    return;
+  }
+
   var reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('attachmentRow').style.display = 'flex';
-    document.getElementById('attachThumb').innerHTML =
-      '<div class="thumb-wrap"><img src="' + e.target.result + '" class="img-thumb" /><button class="remove-img" onclick="clearImageAttachment()">✕</button></div>';
+    // Show thumbnail in chat input area
+    var attachmentRow = document.getElementById('attachmentRow');
+    var attachThumb   = document.getElementById('attachThumb');
+    if (attachmentRow) attachmentRow.style.display = 'flex';
+    if (attachThumb) attachThumb.innerHTML =
+      '<div class="thumb-wrap">' +
+        '<img src="' + e.target.result + '" class="img-thumb" />' +
+        '<button class="remove-img" onclick="clearImageAttachment()">✕</button>' +
+      '</div>';
   };
   reader.readAsDataURL(file);
 
-  // Update both sidebar previews
-  ['imagePreviewArea','imagePreviewAreaDesktop'].forEach(function(id) {
+  // Show loading state in sidebar previews
+  ['imagePreviewArea', 'imagePreviewAreaDesktop'].forEach(function(id) {
     var el = document.getElementById(id);
-    if (el) el.innerHTML = '<div style="padding:0.4rem; font-size:0.75rem; color:rgba(255,255,255,0.7);">⏳ Analyze kar raha hun...</div>';
+    if (el) el.innerHTML =
+      '<div style="padding:0.4rem; font-size:0.75rem; color:rgba(255,255,255,0.7);">⏳ Analyze kar raha hun...</div>';
   });
 
+  // ✅ FIX: Convert to base64 then send to backend for analysis
   fileToBase64(file).then(function(b64) {
     return describeImage(b64, file.type);
   }).then(function(desc) {
     uploadedImageDesc = desc;
-    ['imagePreviewArea','imagePreviewAreaDesktop'].forEach(function(id) {
+    ['imagePreviewArea', 'imagePreviewAreaDesktop'].forEach(function(id) {
       var el = document.getElementById(id);
-      if (el) el.innerHTML = '<div style="padding:0.4rem; font-size:0.73rem; color:rgba(255,255,255,0.85);">✅ ' + desc.slice(0,80) + '...</div>';
+      if (el) el.innerHTML =
+        '<div style="padding:0.4rem; font-size:0.73rem; color:rgba(255,255,255,0.85);">✅ ' +
+        desc.slice(0, 80) + '...</div>';
     });
-  }).catch(function() {
+  }).catch(function(err) {
+    console.error('Image analysis error:', err);
+    // ✅ FIX: Still allow sending even if analysis fails
     uploadedImageDesc = 'Plant ki image upload ki gayi hai.';
-    ['imagePreviewArea','imagePreviewAreaDesktop'].forEach(function(id) {
+    ['imagePreviewArea', 'imagePreviewAreaDesktop'].forEach(function(id) {
       var el = document.getElementById(id);
-      if (el) el.innerHTML = '<div style="padding:0.4rem; font-size:0.73rem; color:rgba(255,255,255,0.7);">✅ Image ready</div>';
+      if (el) el.innerHTML =
+        '<div style="padding:0.4rem; font-size:0.73rem; color:rgba(255,255,255,0.7);">✅ Image ready (manual describe)</div>';
     });
   });
+}
+
+// ✅ NEW: Trigger file input — call this from your upload button
+function triggerImageUpload(inputId) {
+  var inputIdToUse = inputId || 'imageInput';
+  var el = document.getElementById(inputIdToUse);
+  if (el) {
+    el.value = ''; // ✅ Reset so same file can be re-uploaded
+    el.click();
+  }
 }
 
 function fileToBase64(file) {
   return new Promise(function(res, rej) {
     var r = new FileReader();
     r.onload  = function() { res(r.result.split(',')[1]); };
-    r.onerror = rej;
+    r.onerror = function() { rej(new Error('File read failed')); };
     r.readAsDataURL(file);
   });
 }
@@ -336,28 +340,35 @@ function describeImage(base64, mimeType) {
   return fetch('/api/chatbot/analyze-image', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base64: base64, mimeType: mimeType })
-  }).then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (!d.success) throw new Error(d.error);
-      return d.description;
-    });
+    body: JSON.stringify({ base64: base64, mimeType: mimeType || 'image/jpeg' })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('Server error ' + r.status);
+    return r.json();
+  }).then(function(d) {
+    if (!d.success) throw new Error(d.error || 'Analysis failed');
+    return d.description;
+  });
 }
 
 function clearImageAttachment() {
   uploadedImageDesc = '';
+
   var ar = document.getElementById('attachmentRow');
   if (ar) ar.style.display = 'none';
   var at = document.getElementById('attachThumb');
   if (at) at.innerHTML = '';
-  ['imageInput','imageInputDesktop'].forEach(function(id) {
+
+  // ✅ FIX: Reset BOTH input elements so same image can be re-selected
+  ['imageInput', 'imageInputDesktop'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
-  ['imagePreviewArea','imagePreviewAreaDesktop'].forEach(function(id) {
+
+  ['imagePreviewArea', 'imagePreviewAreaDesktop'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.innerHTML = '';
   });
+
   var cp = document.getElementById('capturedPreview');
   if (cp) { cp.style.display = 'none'; cp.src = ''; }
   var as = document.getElementById('analyzeStatus');
@@ -413,9 +424,10 @@ function sendQuickQ(q) {
 function clearChat() {
   stopAllSpeech();
   chatHistory = [];
+  uploadedImageDesc = '';
   document.getElementById('chatMessages').innerHTML =
     '<div class="message bot"><div class="msg-av bot">🌱</div>' +
-    '<div class="msg-bubble">चैट साफ! नया सवाल पूछो भाई 🙏</div></div>';
+    '<div class="msg-bubble">चैट साफ! नया सवाल पूछो 🙏</div></div>';
 }
 
 function handleKeyDown(e) {
@@ -434,9 +446,19 @@ document.addEventListener('visibilitychange', function() {
   if (document.hidden) stopAllSpeech();
 });
 
+// ===== INIT =====
 document.addEventListener('DOMContentLoaded', function() {
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+
+  // ✅ FIX: Bind image input change events on DOM ready (in case inline onchange not set)
+  ['imageInput', 'imageInputDesktop'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.setAttribute('accept', 'image/*');
+      el.addEventListener('change', handleImageUpload);
+    }
+  });
 
   var q = sessionStorage.getItem('cropQuery');
   if (q) {
